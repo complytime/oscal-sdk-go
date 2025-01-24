@@ -25,8 +25,9 @@ const (
 )
 
 type generateOpts struct {
-	title     string
-	importSSP string
+	title           string
+	importSSP       string
+	localComponents []string
 }
 
 func (g *generateOpts) defaults() {
@@ -51,6 +52,16 @@ func WithTitle(title string) GenerateOption {
 func WithImport(importSSP string) GenerateOption {
 	return func(opts *generateOpts) {
 		opts.importSSP = importSSP
+	}
+}
+
+// WithLocalComponents is a GenerateOptions that determine which components
+// the `comps` argument in GenerateAssessmentPlan will be written to Components under
+// LocalDefinitions. This would denote that these component are not defined in the SSP
+// if the `WithImport` options is also used.
+func WithLocalComponents(localComponents []string) GenerateOption {
+	return func(opts *generateOpts) {
+		opts.localComponents = localComponents
 	}
 }
 
