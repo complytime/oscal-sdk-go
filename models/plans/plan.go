@@ -8,20 +8,18 @@ package plans
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 
 	"github.com/oscal-compass/oscal-sdk-go/extensions"
-	"github.com/oscal-compass/oscal-sdk-go/models"
+	"github.com/oscal-compass/oscal-sdk-go/generators"
 	"github.com/oscal-compass/oscal-sdk-go/models/components"
 	"github.com/oscal-compass/oscal-sdk-go/rules"
 	"github.com/oscal-compass/oscal-sdk-go/settings"
 )
 
 const (
-	defaultVersion     = "0.1.0"
 	defaultSubjectType = "component"
 	defaultTaskType    = "action"
 )
@@ -32,8 +30,8 @@ type generateOpts struct {
 }
 
 func (g *generateOpts) defaults() {
-	g.title = models.DefaultRequiredString
-	g.importSSP = models.DefaultRequiredString
+	g.title = generators.SampleRequiredString
+	g.importSSP = generators.SampleRequiredString
 }
 
 // GenerateOption defines an option to tune the behavior of the
@@ -111,17 +109,15 @@ func GenerateAssessmentPlan(ctx context.Context, comps []components.Component, i
 	}
 	*ruleBasedTask.Subjects = append(*ruleBasedTask.Subjects, oscalTypes.AssessmentSubject{IncludeSubjects: &subjectSelectors})
 
+	metadata := generators.NewSampleMetadata()
+	metadata.Title = options.title
+
 	assessmentPlan := &oscalTypes.AssessmentPlan{
 		UUID: uuid.NewUUID(),
 		ImportSsp: oscalTypes.ImportSsp{
 			Href: options.importSSP,
 		},
-		Metadata: oscalTypes.Metadata{
-			Title:        options.title,
-			LastModified: time.Now(),
-			OscalVersion: models.OSCALVersion,
-			Version:      defaultVersion,
-		},
+		Metadata: metadata,
 		AssessmentSubjects: &[]oscalTypes.AssessmentSubject{
 			{
 				IncludeSubjects: &subjectSelectors,
@@ -260,7 +256,7 @@ func AssessmentAssets(comps []components.Component) oscalTypes.AssessmentAssets 
 	// AssessmentPlatforms is a required field under AssessmentAssets
 	assessmentPlatform := oscalTypes.AssessmentPlatform{
 		UUID:           uuid.NewUUID(),
-		Title:          models.DefaultRequiredString,
+		Title:          generators.SampleRequiredString,
 		UsesComponents: &usedComponents,
 	}
 	assessmentAssets := oscalTypes.AssessmentAssets{
