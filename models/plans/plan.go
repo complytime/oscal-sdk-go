@@ -65,7 +65,7 @@ func GenerateAssessmentPlan(ctx context.Context, comps []components.Component, i
 
 	memoryStore := rules.NewMemoryStore()
 	if err := memoryStore.IndexAll(comps); err != nil {
-		return nil, fmt.Errorf("failed processing comps for assessment plan %q: %w", options.title, err)
+		return nil, fmt.Errorf("failed processing components for assessment plan %q: %w", options.title, err)
 	}
 
 	ruleBasedTask := oscalTypes.Task{
