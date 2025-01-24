@@ -16,6 +16,7 @@ import (
 
 	"github.com/oscal-compass/oscal-sdk-go/extensions"
 	"github.com/oscal-compass/oscal-sdk-go/generators"
+	"github.com/oscal-compass/oscal-sdk-go/models"
 	"github.com/oscal-compass/oscal-sdk-go/models/components"
 	"github.com/oscal-compass/oscal-sdk-go/rules"
 	"github.com/oscal-compass/oscal-sdk-go/settings"
@@ -40,10 +41,16 @@ func TestGenerateAssessmentPlan(t *testing.T) {
 			inputSetting:    defaultSettings,
 			inputOptions:    nil,
 			assertFunc: func(t *testing.T, plan *oscalTypes.AssessmentPlan) {
-				require.Len(t, *plan.LocalDefinitions.Activities, 4)
+				// Validate the "shape" of the assessment plan
+				require.Len(t, *plan.LocalDefinitions.Activities, 2)
 				require.Len(t, *plan.AssessmentAssets.Components, 2)
 				require.Len(t, *plan.AssessmentSubjects, 1)
 				require.Len(t, plan.ReviewedControls.ControlSelections, 1)
+				require.Len(t, *plan.AssessmentAssets.Components, 2)
+
+				// Validate default string
+				require.Equal(t, plan.Metadata.Title, models.DefaultRequiredString)
+				require.Equal(t, plan.ImportSsp.Href, models.DefaultRequiredString)
 			},
 			expError: "",
 		},

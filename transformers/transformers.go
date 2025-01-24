@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 
-	oscaltypes112 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 
 	"github.com/oscal-compass/oscal-sdk-go/models/components"
 	"github.com/oscal-compass/oscal-sdk-go/models/plans"
@@ -17,21 +17,22 @@ import (
 )
 
 // ComponentDefinitionsToAssessmentPlan transforms the data from one or more OSCAL Component Definitions to a single OSCAL Assessment Plan.
-func ComponentDefinitionsToAssessmentPlan(ctx context.Context, definitions []oscaltypes112.ComponentDefinition, framework string) (*oscaltypes112.AssessmentPlan, error) {
+func ComponentDefinitionsToAssessmentPlan(ctx context.Context, definitions []oscalTypes.ComponentDefinition, framework string) (*oscalTypes.AssessmentPlan, error) {
 	// Collect and aggregate all component information for each component definition
 	var allComponents []components.Component
-	var allImplementations []oscaltypes112.ControlImplementationSet
+	var allImplementations []oscalTypes.ControlImplementationSet
 	for _, compDef := range definitions {
 		if compDef.Components == nil {
 			continue
 		}
 		for _, comp := range *compDef.Components {
-			if comp.ControlImplementations == nil {
-				continue
+			if comp.ControlImplementations != nil || comp.Type == string(components.Validation) {
+				componentAdapter := components.NewDefinedComponentAdapter(comp)
+				allComponents = append(allComponents, componentAdapter)
+				if comp.ControlImplementations != nil {
+					allImplementations = append(allImplementations, *comp.ControlImplementations...)
+				}
 			}
-			componentAdapter := components.NewDefinedComponentAdapter(comp)
-			allComponents = append(allComponents, componentAdapter)
-			allImplementations = append(allImplementations, *comp.ControlImplementations...)
 		}
 	}
 	implementationSettings, err := settings.Framework(framework, allImplementations)
