@@ -40,6 +40,36 @@ func NewImplementationSettings(controlImplementation oscalTypes.ControlImplement
 	return implementation
 }
 
+// NewAssessmentActivitiesSettings returns a new Setting populate based on data from OSCAL Activities
+//
+// The mapping between a RuleSet and Activity is as follows:
+// Activity -> Rule
+// Title -> Rule ID
+// Parameter -> Activity Property
+func NewAssessmentActivitiesSettings(assessmentActivities []oscalTypes.Activity) Settings {
+	rules := set.New[string]()
+	parameters := make(map[string]string)
+	for _, activity := range assessmentActivities {
+
+		// Activities based on rules are expected to have at
+		// least one property set
+		if activity.Props == nil {
+			continue
+		}
+
+		paramProps := extensions.FindAllProps(*activity.Props, extensions.WithClass(extensions.TestParameterClass))
+		for _, param := range paramProps {
+			parameters[param.Name] = param.Value
+		}
+
+		rules.Add(activity.Title)
+	}
+	return Settings{
+		mappedRules:        rules,
+		selectedParameters: parameters,
+	}
+}
+
 //	newRequirementForImplementation adds a new Setting to an exist ImplementationSettings and updates all related
 //
 // fields.
@@ -75,7 +105,7 @@ func settingsFromImplementedRequirement(implementedReq oscalTypes.ImplementedReq
 	requirement := NewSettings(set.New[string](), make(map[string]string))
 
 	if implementedReq.Props != nil {
-		mappedRulesProps := extensions.FindAllProps(extensions.RuleIdProp, *implementedReq.Props)
+		mappedRulesProps := extensions.FindAllProps(*implementedReq.Props, extensions.WithName(extensions.RuleIdProp))
 		for _, mappedRule := range mappedRulesProps {
 			requirement.mappedRules.Add(mappedRule.Value)
 		}
@@ -88,7 +118,7 @@ func settingsFromImplementedRequirement(implementedReq oscalTypes.ImplementedReq
 	if implementedReq.Statements != nil {
 		for _, stm := range *implementedReq.Statements {
 			if stm.Props != nil {
-				mappedRulesProps := extensions.FindAllProps(extensions.RuleIdProp, *stm.Props)
+				mappedRulesProps := extensions.FindAllProps(*stm.Props, extensions.WithName(extensions.RuleIdProp))
 				if len(mappedRulesProps) == 0 {
 					continue
 				}
