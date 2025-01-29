@@ -70,7 +70,7 @@ func NewAssessmentActivitiesSettings(assessmentActivities []oscalTypes.Activity)
 	}
 }
 
-//	newRequirementForImplementation adds a new Setting to an exist ImplementationSettings and updates all related
+//	newRequirementForImplementation adds a new Setting to an existing ImplementationSettings and updates all related
 //
 // fields.
 func newRequirementForImplementation(implementedReq oscalTypes.ImplementedRequirementControlImplementation, implementation *ImplementationSettings) {
@@ -80,23 +80,20 @@ func newRequirementForImplementation(implementedReq oscalTypes.ImplementedRequir
 	requirement := settingsFromImplementedRequirement(implementedReq)
 
 	// Do not add requirements without mapped rules
-	if len(requirement.mappedRules) == 0 {
-		// do not progress
-		return
-	}
-
-	for mappedRule := range requirement.mappedRules {
-		controlSet, ok := implementation.controlsByRules[mappedRule]
-		if !ok {
-			controlSet = set.New[string]()
+	if len(requirement.mappedRules) > 0 {
+		for mappedRule := range requirement.mappedRules {
+			controlSet, ok := implementation.controlsByRules[mappedRule]
+			if !ok {
+				controlSet = set.New[string]()
+			}
+			controlSet.Add(implementedReq.ControlId)
+			implementation.controlsByRules[mappedRule] = controlSet
+			implementation.controlsById[implementedReq.ControlId] = implementedControl
+			implementation.settings.mappedRules.Add(mappedRule)
 		}
-		controlSet.Add(implementedReq.ControlId)
-		implementation.controlsByRules[mappedRule] = controlSet
-		implementation.controlsById[implementedReq.ControlId] = implementedControl
-		implementation.settings.mappedRules.Add(mappedRule)
-	}
 
-	implementation.implementedReqSettings[implementedReq.ControlId] = requirement
+		implementation.implementedReqSettings[implementedReq.ControlId] = requirement
+	}
 }
 
 // settingsFromImplementedRequirement returns Settings populated with data from an
